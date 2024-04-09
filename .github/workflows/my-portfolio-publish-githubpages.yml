@@ -1,52 +1,67 @@
 # File: .github/workflows/publish.yml
-name: publish-to-github-pages
+name: Publish to GitHub Pages
+
+# Triggers the workflow on pushes to the master branch and allows manual triggering
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
+# Defines permissions for the workflow
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Sets concurrency options
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
+# Defines jobs for the workflow
 jobs:
+  # Job for building the project
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # Checks out the repository
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
+      # Sets up Node.js, caches dependencies, and installs them
       - name: Setup Node.js ⚙️ - Cache dependencies ⚡ - Install dependencies 🔧
         uses: ./.github/workflows/setup-node
 
+      # Configures Pages for deployment, specifying Next.js as the static site generator
       - name: Setup Pages ⚙️
         uses: actions/configure-pages@v4
         with:
           static_site_generator: next
 
+      # Builds the project using Next.js
       - name: Build with Next.js 🏗️
         run: npx next build
 
+      # Uploads the built artifacts
       - name: Upload artifact 📡
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
 
+  # Job for deploying the project to GitHub Pages
   deploy:
     environment:
       name: github-pages
+      # Uses the output URL from the deployment step
       url: ${{ steps.deployment.outputs.page_url }}
 
     runs-on: ubuntu-latest
     needs: build
 
     steps:
+      # Publishes the built artifacts to GitHub Pages
       - name: Publish to GitHub Pages 🚀
         id: deployment
         uses: actions/deploy-pages@v4
